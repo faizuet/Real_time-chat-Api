@@ -7,6 +7,7 @@ from alembic import context
 from app.core.config import settings
 from app.core.database import Base
 
+# Import all models so Alembic can detect them
 from app.models import (
     user,
     chat_room,
@@ -20,32 +21,34 @@ from app.models import (
 # ------------------------------
 config = context.config
 
-# Use DATABASE_URI from settings
-config.set_main_option("sqlalchemy.url", settings.DATABASE_URI)
+# ✅ Inject the async DB URL properly
+config.set_main_option("sqlalchemy.url", str(settings.DATABASE_URL))
 
-# Logging setup
+# ✅ Logging setup
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# Target metadata for autogenerate
+# ✅ Target metadata for autogenerate
 target_metadata = Base.metadata
+
 
 # ------------------------------
 # Offline Migrations
 # ------------------------------
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode."""
-    url = settings.DATABASE_URI
+    url = str(settings.DATABASE_URL)
     context.configure(
         url=url,
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
-        compare_type=True,  # detect column type changes automatically
+        compare_type=True,  # ✅ detect column type changes automatically
     )
 
     with context.begin_transaction():
         context.run_migrations()
+
 
 # ------------------------------
 # Online Migrations
@@ -54,16 +57,17 @@ def do_run_migrations(connection: Connection) -> None:
     context.configure(
         connection=connection,
         target_metadata=target_metadata,
-        compare_type=True,
+        compare_type=True,  # ✅ detect column type changes
     )
 
     with context.begin_transaction():
         context.run_migrations()
 
+
 async def run_migrations_online() -> None:
     """Run migrations in 'online' mode with AsyncEngine."""
     connectable: AsyncEngine = create_async_engine(
-        settings.DATABASE_URI,
+        str(settings.DATABASE_URL),
         poolclass=pool.NullPool,
     )
 
@@ -71,6 +75,7 @@ async def run_migrations_online() -> None:
         await connection.run_sync(do_run_migrations)
 
     await connectable.dispose()
+
 
 # ------------------------------
 # Run Migrations

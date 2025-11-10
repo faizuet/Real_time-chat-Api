@@ -1,41 +1,27 @@
-from pydantic import BaseModel, EmailStr, Field
-from typing import Optional
+from pydantic import BaseModel, EmailStr, Field, ConfigDict
 from datetime import datetime
-import uuid
 
 
-class UserBase(BaseModel):
-    username: str
+# ---------- Request Schemas ----------
+
+class UserCreate(BaseModel):
+    username: str = Field(..., min_length=3, max_length=50)
     email: EmailStr
+    password: str = Field(..., min_length=6)
 
 
-class UserCreate(UserBase):
+class UserLogin(BaseModel):
+    username: str
     password: str
 
 
-class UserUpdate(BaseModel):
-    username: Optional[str] = None
-    email: Optional[EmailStr] = None
-    password: Optional[str] = Field(None, min_length=6)
+# ---------- Response Schemas ----------
 
-
-class UserResponse(UserBase):
-    id: str  # keep string for response
+class UserResponse(BaseModel):
+    id: int
+    username: str
+    email: EmailStr
     created_at: datetime
 
-    class Config:
-        from_attributes = True
-
-    @classmethod
-    def from_orm_obj(cls, obj):
-        """
-        Convert SQLAlchemy object to Pydantic response,
-        converting UUID to string.
-        """
-        return cls(
-            id=str(obj.id),
-            username=obj.username,
-            email=obj.email,
-            created_at=obj.created_at
-        )
+    model_config = ConfigDict(from_attributes=True)
 
