@@ -3,7 +3,7 @@ from pydantic import Field
 
 class Settings(BaseSettings):
     # ---------- Database ----------
-    DATABASE_URL: str = Field(..., env="DATABASE_URL")
+    DATABASE_URI: str = Field(..., env="DATABASE_URI")  # Field name matches .env key
 
     # ---------- JWT Configuration ----------
     JWT_SECRET_KEY: str = Field(..., env="JWT_SECRET_KEY")
@@ -14,6 +14,6 @@ class Settings(BaseSettings):
         env_file = ".env"
         env_file_encoding = "utf-8"
 
-
+# Instantiate settings
 settings = Settings()
 

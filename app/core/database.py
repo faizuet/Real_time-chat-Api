@@ -7,12 +7,12 @@ Base = declarative_base()
 
 # ---------- Engine ----------
 engine = create_async_engine(
-    str(settings.DATABASE_URL),
-    echo=False,  # set True only for debugging
+    settings.DATABASE_URI,
+    echo=False,
     future=True,
 )
 
-# ---------- Session ----------
+# ---------- Session Maker ----------
 async_session_maker = sessionmaker(
     bind=engine,
     class_=AsyncSession,
@@ -21,7 +21,12 @@ async_session_maker = sessionmaker(
 
 # ---------- Dependency ----------
 async def get_async_db() -> AsyncSession:
-    """FastAPI dependency that provides an async DB session."""
+    """
+    FastAPI dependency that provides an async database session.
+    Usage:
+        async def endpoint(db: AsyncSession = Depends(get_async_db)):
+            ...
+    """
     async with async_session_maker() as session:
         yield session
 
